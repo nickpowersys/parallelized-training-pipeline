@@ -26,8 +26,8 @@ config = toml.load("./config.toml")
 API_DOMAIN = config["paperspace"]["api_domain"]
 LOG_DOMAIN = config["paperspace"]["log_domain"]
 
-#logging.config.fileConfig("./logging.ini", disable_existing_loggers=False)
-#logger = logging.getLogger(__name__)
+logging.config.fileConfig("./logging.ini", disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
 
 
 def run_parallel_training(
