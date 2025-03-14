@@ -1,0 +1,10 @@
+keras
+maya
+numpy
+pandas
+pre-commit
+python-dotenv
+quilt3
+requests
+tensorflow<2.0.0
+toml
