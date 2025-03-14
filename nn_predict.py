@@ -25,14 +25,9 @@ from keras.layers.recurrent import LSTM
 from keras.models import model_from_json, Sequential
 from keras.utils import multi_gpu_model
 
-# import matplotlib.pyplot as plt
-# from matplotlib.pyplot import figure, show
-# from matplotlib.ticker import MaxNLocator
-# import maya
 import numpy as np
 from numpy import array
 import pandas as pd
-# import quilt
 import requests
 from access import get_xyt_arrs
 import accesscloud
@@ -46,34 +41,14 @@ from keras.engine import InputSpec
 
 FINISHED_DEV_ACTIVITY = 'fit and profiling'
 
-#from custom_recurrents import AttentionDecoder
-
-
-#import rpy2.robjects as robjects # taken out while investigating docker image reduction
-#from rpy2.robjects.packages import importr # docker image reduction
-#from rpy2.robjects import numpy2ri # docker image reduction
-# numpy2ri.activate()
-#poibin = importr('poibin') # docker image reduction
-
-#from paperspace import ids_trained_prev_jobs
-
-# from caar.data import get_data_set
-# from caar.profiling import profile_ex_creation, profile_training
-
-#from data import get_training_set, get_test_set
-
 TRAIN_LOG = './caar.log'
 TRAIN_LOG = './test.log'
 logger = logging.getLogger('nn_predict_app')
 hdlr = logging.FileHandler(TRAIN_LOG)
-#handler = logging.StreamHandler()
 formatter = logging.Formatter(
             '%(asctime)s %(name)-12s %(levelname)-8s %(funcName)20s() %(message)s')
-#handler.setFormatter(formatter)
 hdlr.setFormatter(formatter)
-#logger.addHandler(handler)
 logger.addHandler(hdlr)
-#logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
 API_DOMAIN = 'https://api.paperspace.io'
@@ -85,12 +60,6 @@ Jobstats = namedtuple('Jobstats', ['jobid', 'machine_type', 'container',
                                        'exit_code', 'usage_rate', 'cpu_count',
                                        'cpu_mem', 'cpu_model'])
 
-
-# from caar.training_examples import (example_file_path,
-#                                     examples_for_single_device,
-#                                     load_training_examples,
-#                                     reshape_examples,
-#                                     reshape_examples_from_list)
 
 #  https://github.com/keunwoochoi/keras_callbacks_example/my_callbacks.py
 
@@ -117,26 +86,7 @@ MIN_DELTA = 0.001
 
 earlystop = EarlyStopping(monitor='val_loss', min_delta=MIN_DELTA,
                           patience=PATIENCE, verbose=2, mode='auto')
-#earlystop = EarlyStopping(monitor='loss', min_delta=MIN_DELTA,
-#                          patience=PATIENCE, verbose=2, mode='auto')
 
-# class Histories(keras.callbacks.Callback):
-#     def on_batch_begin(self, batch, logs=None):
-#         return
-#
-#     def on_batch_end(self, batch, logs={}):
-#         self.accuracy.append(logs.get('acc'))
-#         self.accuracy.append(logs.get('val_acc'))
-#         return
-#
-#     def on_epoch_end(self, epoch, logs={}):
-#         #self.losses.append(logs.get('loss'))
-#         #y_pred = self.model.predict(self.validation_data[0])
-#         #self.aucs.append(roc_auc_score(self.validation_data[1], y_pred))
-#         return
-
-
-# Made a function that sounds more like what it is: train_and_summarize (below)
 def predict_and_store_results(ids, data_dir=None, data='on_off', suffix=None,
                               weights_suffix=None, len_in=None, len_out=None,
                               model_dir=None, write_examples=False,
@@ -311,17 +261,6 @@ def profile_training_paperspace(jobid, headers, projecct='tlproject',
     days = []
     stop_epochs = []
 
-    # artifacts_list = '/'.join(['jobs', 'artifactsList'])
-    # payload = {'jobId': jobid}
-    # r = requests.get('/'.join([API_DOMAIN, artifacts_list]),
-    #                  params=payload, headers=headers)
-    # artifacts = r.json()
-    # prefixes = (a['file'].split('_')[0] for a in artifacts)
-    #
-    # training_files = [a['file'] for a, p in zip(artifacts, prefixes)
-    #                   if p == 'train']
-    # ids_files = dict([(f.split('_')[-1][:-4], f) for f in training_files])
-
     for dev, training_time in zip(dev_ids, deltas):
         training_times
         training_times.append(training_time)
@@ -411,16 +350,8 @@ def training_epochs_from_logs(jobid, headers,
 
     log_times_msgs = [l['message'] for l in log_content
                       if epochs_str in l['message']]
-    # print('log_times_msgs')
-    # for lt in log_times_msgs:
-    #     print(lt)
     epochs_msgs = (msg[msg.find('{'): msg.find('}') + 1]
                    for msg in log_times_msgs if msg.find('{') >= 0)
-    # print('epochs_msgs')
-    # for ep in epochs_msgs:
-    #     print(ep)
-
-    # ends_info = (msg.find('}') + 1 for msg in log_times_msgs)
     info_dicts = (ast.literal_eval(msg) for msg in epochs_msgs)
     ids_stops = dict([(info['id'], info['stopped_epoch'] + 1)
                      for info in info_dicts])
@@ -429,18 +360,6 @@ def training_epochs_from_logs(jobid, headers,
         if 'max_epochs' in msg:
             max_epoch = int(msg[msg.find('max_epochs') + 12: msg.find(", 'id")])
             break
-
-    # stop_epochs_0 = [msg.split(stop_desc + ' ')[-1] for msg in log_times_msgs]
-    #print('stop_epochs_0', stop_epochs_0)
-    #stop_epochs = (int(msg.split(',')[0]) + 1 for msg in stop_epochs_0)
-    #print('stop_epochs', stop_epochs)
-    #max_epochs = ''.join(stop_epochs_0[0].split(', ')).split()[1]
-    #print('max_epochs', max_epochs)
-    # max_epochs_0 = (msg.split(log_desc2 + ' ')[-1] for msg in log_times_msgs)
-    # max_epochs = (msg.split()[0] for msg in max_epochs_0)
-    #ids = (msg.split()[-1] for msg in log_times_msgs)
-    #ids_stops = dict([(sid, stop_epoch)
-    #                  for sid, stop_epoch in zip(ids, stop_epochs)])
 
     return ids_stops, max_epoch
 
@@ -466,21 +385,16 @@ def time_deltas_from_log(log_file, begin_str, end_str):
             print('dev_id in logged: {}'.format(dev_id_in_logged))
             if all((begin_str in logged, dev_id in logged,
                     dev_id != prev_id_begin)):
-                # dev_id = int(logged.split()[-1])
-            #if begin_str in logged and dev_id != prev_id_begin:
                 raw_datetime = logged.split()[0:2]
                 begins.append(raw_datetime)
 
                 dev_ids_begin.append(dev_id)
                 prev_id_begin = dev_id
-                # logger.info('prev_id_begin %s', dev_id)
-            #elif end_str in logged and dev_id != prev_id_end:
 
             elif all((end_str in logged, dev_id in logged,
                      dev_id != prev_id_end)):
                 end_str_in_logged = end_str in logged
                 print('end_str in logged: {}'.format(end_str_in_logged))
-                # dev_id = int(logged.split()[-1])
                 raw_datetime = logged.split()[0:2]
                 ends.append(raw_datetime)
 
@@ -511,11 +425,6 @@ def train(ids=None, data=None, val_split=None, patience=None,
     if isinstance(model, tuple):
         print('len of model: ', len(model))
 
-    # data, dev_keys, metadata = get_data_set(package)
-    # don't need dev_keys because it is expected that ids will already be determined
-    # before train is called
-
-    # len_in, len_out = len_of_x_and_y(data, dev_keys)
     len_in, len_out = len_of_x_and_y(data)
 
     previous_jobs_exist = True if completed else False
@@ -529,59 +438,30 @@ def train(ids=None, data=None, val_split=None, patience=None,
     else:
         print('ids is not None. Basing ids off parameter.')
         dev_ids = ids.split(sep)
-    # ids = sep.join(list(data.keys()))
     print('in train. ids: {}'.format(', '.join(dev_ids)))
 
-    # clean_dev_keys = remove_prefix_for_quilt_data(dev_keys)
     if previous_jobs_exist:
         print('completed: {}'.format(completed))
         devs_jobs = dict(completed)
-        # devs_completed = list(devs_jobs.keys())
-        # devs_completed =  remove_prefix_for_quilt_data(devs_completed)
-        #for i, dev_id in enumerate(devs_completed):
-        # for dev_id in devs_completed:
         for dev_id, jobid in devs_jobs.items():
-            # dev = mod_id[1:]
-            # jobid = completed[dev]
-            # jobid = devs_jobs[dev_id]
             logging.info("dev_trained:job_id{'%s': '%s'}" %
                          (dev_id, jobid))
 
         devs_trained = devs_jobs.keys()
-        # to_complete = set(clean_dev_keys) - set(devs_trained)
         to_complete = list(set(dev_ids) - set(devs_trained))
     else:
-        # to_complete = set(clean_dev_keys)
         to_complete = dev_ids
-    #if ids is not None:
-        # dev_ids = set(ids)
-        # WHAT IF ids are specified that aren't in the data? throw an error?
-        # should that get thrown before train() is called/i.e., earlier?
-        #to_complete = to_complete.intersection(dev_ids)
-    #    to_complete = dev_ids
     print('to complete: {}'.format(to_complete))
-
-    #to_complete = list(to_complete)
-    # DON'T NEED mod_ids any more without quilt
-    #mod_ids = add_prefix_for_quilt(to_complete)
 
     print('to complete: {}'.format(to_complete))
 
-    #for i, mod_id in enumerate(dev_keys):
 
     model_label, model_func = model # 'LSTM', actual model function
 
     print('Model: ', model_label)
 
-    #for mod_id, dev in zip(mod_ids, to_complete):
+
     for dev in to_complete:
-        # dev = mod_id[1:]
-        # if previous_jobs_exist and dev in completed:
-        #    jobid = completed[dev]
-        #    logging.info("dev_trained:job_id{'%s': '%s'}" %
-        #                 (dev, jobid))
-        #    continue
-        #elif ids is not None and int(dev) in ids:
         begin = time.time()
         #sidnode = data[mod_id]
         #X, Y, T = sidnode.X(), sidnode.Y(), sidnode.T()
@@ -792,17 +672,8 @@ def training_results_file(sid, weights_suffix, model_dir, ext, len_in,
 
 def plot_train_test(acc, val_acc):
     num_train, num_val = acc.shape[0], val_acc.shape[0]
-    #logging.debug('num train %s', num_train)
-    #logging.debug('num val %s', num_val)
     train_per_val = int(num_train/num_val)
-    # logging.debug('train_per_val %s', train_per_val)
-    # logging.debug('len %s', len(acc[::train_per_val]))
-    # logging.debug('product %s', len(acc[::train_per_val]) * num_val)
-    #xaxis = np.arange(len(acc[::train_per_val])) * num_val
-    # xaxis = np.arange(len(val_acc))
     ax = figure().gca()
-    # ax.set_xlabel('Minutes')
-    # ax.set_ylabel('ACs ON')
     ax.plot(acc[::train_per_val])
     ax.plot(val_acc)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -900,21 +771,10 @@ def summarize_input(sid, X, T, len_in, val_split, data_dir=None, suffix=None,
     elif type(T) == pd.DataFrame:
         ex_starts = T.index[::len_in]
 
-    #print('ex_starts.size type: {}', format(type(ex_starts[0])))
-    #print('ex_starts value: {}', format(ex_starts[0:2]))
-    #print('ex_starts.size value: {}', format(type(ex_starts.size)))
-
-    #print('value of vaL_split: {}', format(val_split))
     num_train = int(round(ex_starts.size * (1 - val_split)))
-
-    #print('type of num_train: {}', format(type(num_train)))
-    #print('value of num_train: {}', format(num_train))
 
     train_starts = ex_starts[:num_train]
 
-    #if type(T) == np.ndarray:
-    #    train_days = set(pd.Timestamp(d).date() for d in train_starts)
-    #elif type(T) == pd.DataFrame:
     train_days = set(d.date() for d in train_starts)
 
     num_train_days = len(train_days)
@@ -930,14 +790,6 @@ def summarize_input(sid, X, T, len_in, val_split, data_dir=None, suffix=None,
     ex_date_arr = (pd.DatetimeIndex(list(ex_dates))
                    .values
                    .astype('datetime64[D]'))
-
-    # dayidx = pd.DatetimeIndex(start=earliest, end=latest, freq='D')
-    #          #   .values
-    #          #   .astype('datetime64[D]'))
-    # day_bool = np.full(dayidx.size, True, dtype=bool)
-    # for i, idx in enumerate(dayidx):
-    #     if idx.date() not in train_days:
-    #         day_bool[i] = False
 
     if write:
         input_file = '_'.join(['input', suffix, str(sid)])
@@ -958,17 +810,6 @@ def summarize_input(sid, X, T, len_in, val_split, data_dir=None, suffix=None,
                       ('num_train', num_train), ('ex_dates', ex_dates)])
     return input_meta
 
-
-#def combine_data_in_sparse_df(pkg):
-
-
-# def predict_for_multiple_devices(ids, data_dir=None, data='on_off', suffix=None,
-#                        len_in=None, len_out=None, write_examples=False,
-#                        overwrite=False):
-#     X, Y, T = single_device_examples(sid, data_dir=data_dir, suffix=suffix,
-#                                      data=data, len_in=len_in, len_out=len_out,
-#                                      write_examples=write_examples,
-#                                      overwrite=overwrite)
 
 def random_predictions_and_actuals(ids, data_dir=None, data='on_off',
                                    len_in=None, len_out=None, suffix=None,
@@ -1043,7 +884,6 @@ def yhat_y(summary, val_example_i, X, Y, model, len_in, len_out, max_exs):
 
     if max_exs is not None and val_examples.size >= max_exs:
         logging.debug('type of val_examples: %s', type(val_examples[0]))
-        # num_exs = max_exs
         full_exs = set(zip(val_examples, val_minutes))
         if val_examples.size > max_exs:
             while len(full_exs) > max_exs:
@@ -1053,16 +893,7 @@ def yhat_y(summary, val_example_i, X, Y, model, len_in, len_out, max_exs):
         selected_exs = selected_exs_mins[:, 0].astype(np.int64)
         selected_mins = selected_exs_mins[:, 1].astype(np.int64)
 
-        # for i, ex in enumerate(selected_exs):
-        #     val_X = np.array(X[ex, :, :]).reshape((1, len_in, 1))
-        #     # predicted_Y = model.predict(val_X, verbose=1).ravel()
-        #     # val_Y = Y[ex, :, :].ravel()
-        #     preds[i, :] = model.predict(val_X, verbose=1).ravel()
-        #     actuals[i, :] = Y[ex, :, :].ravel()
-
     elif max_exs is not None and val_examples.size < max_exs:
-        # num_exs = val_examples.size
-
         if val_examples.size == 0:
             val_examples = summary[val_example_i-1:, 0]
             val_minutes = summary[val_example_i-1:, 1]
@@ -1074,9 +905,6 @@ def yhat_y(summary, val_example_i, X, Y, model, len_in, len_out, max_exs):
         selected_mins = np.full(max_exs, np.nan, dtype=int)
         selected_mins[:val_minutes.size] = array(val_minutes)
 
-        # num_repeats = max_exs - selected_exs.size
-        # selected_exs = np.concatenate((selected_exs, np.full(num_repeats)))
-        # while np.sum(np.isfinite(selected_exs)) < max_exs:
         for ex in range(val_examples.size, max_exs):
             rand_ex = random.randint(0, val_examples.size - 1)
             selected_exs[ex] = val_examples[rand_ex]
@@ -1087,20 +915,9 @@ def yhat_y(summary, val_example_i, X, Y, model, len_in, len_out, max_exs):
     for row_ex in zip(rows, selected_exs):
         row, ex = row_ex
         val_X = np.array(X[ex, :, :]).reshape((1, len_in, 1))
-        # predicted_Y = model.predict(val_X, verbose=1).ravel()
-        # val_Y = Y[ex, :, :].ravel()
         preds[row, :] = model.predict(val_X, verbose=1).ravel()
         actuals[row, :] = Y[ex, :, :].ravel()
 
-    #preds = np.full((num_exs, len_out), np.nan)
-    #actuals = np.full(preds.shape, np.nan)
-
-    # for i, ex in enumerate(selected_exs):
-    #     val_X = np.array(X[ex, :, :]).reshape((1, len_in, 1))
-    #     predicted_Y = model.predict(val_X, verbose=1).ravel()
-    #     val_Y = Y[ex, :, :].ravel()
-    #     preds[i, :] = predicted_Y
-    #     actuals[i, :] = val_Y
     for r in range(preds.shape[0]):
         assert np.any(np.isfinite(preds[r,:]))
         assert np.any(np.isfinite(actuals[r, :]))
@@ -1129,75 +946,9 @@ def yhat_y_gen(summary, val_example_i, X, Y, model, len_in):
         yield predicted_Y, val_Y, rand_minutes
 
 
-# def conc_example_and_nan(preds, actuals, rand_minutes, len_in, spin_time):
-#     preds_and_nan = np.full(len_in + spin_time, np.nan)
-#     start, end = rand_minutes, rand_minutes+len_in
-#     preds_and_nan[start:end] = preds
-#     actuals_and_nan = np.full(preds_and_nan.shape, np.nan)
-#     actuals_and_nan[start:end] = actuals
-#     return preds_and_nan, actuals_and_nan
-
-
 def single_device_examples_name(sid, label, dd):
     file_name = '_'.join([label, '{:03d}'.format(sid) + '.npy'])
     return os.path.join(dd, file_name)
-
-
-# def single_device_examples(sid, data_dir=None, data='on_off', suffix=None,
-#                            len_in=None, len_out=None, write_examples=False,
-#                            overwrite=False, default_setpt=None,
-#                            elevated_setpt=None):
-#     # kwargs = dict([('dev_id', sid), ('data_dir', data_dir),
-#     #                ('file_format', file_format)])
-#
-#     #X, Y = caar.load_training_examples(**kwargs)
-#
-#     examples = examples_for_single_device(dev_id=sid, data_dir=data_dir,
-#                                           suffix=suffix, len_in=len_in,
-#                                           len_out=len_out,
-#                                           write_examples=write_examples,
-#                                           overwrite=overwrite)
-#
-#     # removed the source code from reshape_examples from here and made into
-#     # function
-#
-#     #Xsamples, Ysamples = reshape_examples(examples, data=data, len_in=len_in,
-#     #                                      len_out=len_out)
-#     # reshaped_examples = reshape_examples(examples, data=data, len_in=len_in,
-#     #                                      len_out=len_out)
-#
-#     X = examples['X_reshaped_examples']
-#     Y = examples['Y_reshaped_examples']
-#     T_npy = examples['in_minutes_examples']
-#     T = pd.DataFrame(np.arange(T_npy.shape[0]), index=pd.DatetimeIndex(T_npy))
-#
-#     # return Xsamples, Ysamples
-#     return X, Y, T
-
-
-# def reshape_saved_examples(dev_id=None, data='on_off', suffix=None,
-#                            len_in=20, len_out=20, data_dir=None):
-#     examples = load_training_examples(dev_id=dev_id, data=data, suffix=suffix,
-#                                       data_dir=data_dir)
-#     in_and_out = []
-#     file_paths = []
-#     for example in examples:
-#         file_path, ex = example
-#         in_and_out.append(ex)
-#         file_paths.append(file_path)
-#     X, Y = reshape_examples_from_list(in_and_out, data=data, len_in=len_in,
-#                                       len_out=len_out)
-#     try:
-#         np.save(file_paths[0], X, allow_pickle=False, fix_imports=False)
-#         logging.info('%s written.', file_paths[0])
-#     except IOError:
-#         logging.info('Unable to write to', file_paths[0])
-#     try:
-#         np.save(file_paths[1], Y, allow_pickle=False, fix_imports=False)
-#         logging.info('%s written.', file_paths[1])
-#     except IOError:
-#         logging.info('Unable to write to', file_paths[1])
-#     return True
 
 
 def store_model_results_without_weights(results):
@@ -1211,24 +962,6 @@ def store_model_results_without_weights(results):
                 val_items.append((klabel, vals))
         results_with_lists[k] = dict(val_items)
     return results_with_lists
-
-
-# def validate_examples_begin_with_off(dev_id=None, data='on_off', suffix=None,
-#                                      data_dir=None):
-#     example_beginnings = {}
-#     suspicious_sids = []
-#     in_ex_out_ex = load_training_examples(dev_id=dev_id, data=data,
-#                                           suffix=suffix, data_dir=data_dir)
-#     for in_or_out in in_ex_out_ex:
-#         file_path, ex = in_or_out
-#         file_name = file_path.split('/')
-#         if file_name[-1][0] == 'Y':
-#             num_beginnings_on = sum(ex[:, 0, :])
-#             total_examples = ex.shape[0]
-#             example_beginnings[dev_id] = (num_beginnings_on, total_examples)
-#             if num_beginnings_on > 0:
-#                 suspicious_sids.append(dev_id)
-#     return example_beginnings, suspicious_sids
 
 
 def init_example_args(X=None, len_in=None, len_out=None,
@@ -1254,18 +987,6 @@ def rand_slices_every_five(rand_ys, len_in, md):
         f = os.path.join(md, file_prefix + '_' + str(i) + '.csv')
         np.savetxt(f, rand_slice.flatten())
 
-        # rand_yhats = np.stack(tuple(rand_predicts))
-        # for i in range(0, 20, 5):
-        #     rand_yhat = rand_yhats[:, :, i, :].flatten()
-        #     rf = os.path.join(md, 'rand_yhats' + '_' + str(i) + '.csv')
-        #     np.savetxt(rf, rand_yhat)
-        #
-        # rand_ys = np.stack(tuple(actuals))
-        # for i in range(0, 20, 5):
-        #     rand_y = rand_ys[:, i, :].flatten()
-        #     rf = os.path.join(md, 'rand_ys' + '_' + str(i) + '.csv')
-        #     np.savetxt(rf, rand_y)
-
 
 def attention_model(X, Y, len_in, len_out, val_split=0.30, epochs=None,
                     patience=PATIENCE, dev_id=None, batch_size=None,
@@ -1278,15 +999,12 @@ def attention_model(X, Y, len_in, len_out, val_split=0.30, epochs=None,
     len_per_example = len_in + len_out
     assert len_in == len_out
     model = Sequential()
-    model.add(LSTM(len_in, # Note this is different from regular LSTM, where I used 40 units
+    model.add(LSTM(len_in,
                    input_shape=(len_in, 1),
                    return_sequences=True))
-    model.add(AttentionDecoder(len_in, 1)) # Note this is different from regular LSTM, where I used 40 units
+    model.add(AttentionDecoder(len_in, 1))
     model.compile(optimizer=optimizer, loss='binary_crossentropy',
                   metrics=['accuracy'])
-    #model.compile(optimizer=optimizer, loss='binary_crossentropy',
-    #              metrics=['accuracy'])
-    #model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
     history = AccHistory()
 
     num_epochs_patience = '_'.join([str(epochs), 'epochs',
@@ -1306,28 +1024,13 @@ def attention_model(X, Y, len_in, len_out, val_split=0.30, epochs=None,
                                       save_weights_only=True)
         callbacks.append(checkpoints)
 
-    #print('shape of X: {}'.format(X.shape))
-    #print('type of X: {}'.format(X.dtype))
-    #X_encoded = np.dstack((X.astype('int8') ^ 1,
-    #                       X.astype('int8'))).astype('float64')
-    #print(f'X_encoded shape: {X_encoded.shape}')
-    #X_encoded = squeeze(X, 2)
     X_encoded = X
-    #X_encoded = pd.get_dummies(X.ravel()).values
     print('shape of X_encoded: {}'.format(X_encoded.shape))
 
-    #print('shape of Y: {}'.format(Y.shape))
-    #Y_encoded = np.dstack((Y.astype('int8') ^ 1,
-    #                       Y.astype('int8'))).astype('float64')
-    #print(f'Y_encoded shape: {Y_encoded.shape}')
-    #Y_encoded = squeeze(Y, 2)
     Y_encoded = Y
-    #Y_encoded = pd.get_dummies(Y.ravel()).values
 
     print('shape of Y_encoded: {}'.format(Y_encoded.shape))
 
-    # Removed validation_split=val_split, from the model.fit call
-    # Removed batch_size=batch_size, from the model.fit call
     # Added steps_per_epoch
     print(f'type of X_encoded: {type(X_encoded)}')
     print(f'type of X_encoded.shape: {type(X_encoded.shape)}')
@@ -1337,10 +1040,6 @@ def attention_model(X, Y, len_in, len_out, val_split=0.30, epochs=None,
     hist = model.fit(X_encoded, Y_encoded, callbacks=callbacks,
                      epochs=epochs, steps_per_epoch=steps_per_epoch,
                      verbose=2)
-    # Updated for Dataset: specific x and y as none. steps_per_epoch added also
-    #hist = model.fit(x=None, y=None, callbacks=callbacks,
-    #                 validation_split=val_split, batch_size=batch_size,
-    #                 steps_per_epoch=1, epochs=epochs, verbose=2)
 
     scores = model.evaluate(X_encoded, Y_encoded, verbose=0)
 
@@ -1376,20 +1075,10 @@ def LSTM_model(X, Y, len_in, len_out, val_split=0.30, epochs=None,
     logger.info('begin lstm fit for id %s', dev_id)
     len_per_example = len_in + len_out
     model = Sequential()
-    # model.add(LSTM(len_out,
     model.add(LSTM(len_per_example,
                    input_shape=(len_in, 1),
                    return_sequences=True))
-    #print('type of X within LSTM_Model: {}'.format(type(X)))
-    # Trying to make it work with Dataset with following two lines
-    #output = Dense(1, activation='sigmoid')(X) # THIS DIDN'T WORK
-    #output = Dense(1, activation='sigmoid')
-    #model.add(TimeDistributed(output))
     model.add(TimeDistributed(Dense(1, activation='sigmoid')))
-    #parallel_model = multi_gpu_model(model, gpus=1)
-    #parallel_model.compile(optimizer=optimizer, loss='binary_crossentropy',
-    #                       metrics=['accuracy'])
-    # Updated for Dataset: added target_tensors with Y for it_y
     model.compile(optimizer=optimizer, loss='binary_crossentropy',
                   metrics=['accuracy'])
 
@@ -1415,10 +1104,6 @@ def LSTM_model(X, Y, len_in, len_out, val_split=0.30, epochs=None,
 
     hist = model.fit(X, Y, callbacks=callbacks, validation_split=val_split,
                      batch_size=batch_size, epochs=epochs, verbose=2)
-    # Updated for Dataset: specific x and y as none. steps_per_epoch added also
-    #hist = model.fit(x=None, y=None, callbacks=callbacks,
-    #                 validation_split=val_split, batch_size=batch_size,
-    #                 steps_per_epoch=1, epochs=epochs, verbose=2)
 
     scores = model.evaluate(X, Y, verbose=0)
 
@@ -1484,47 +1169,18 @@ def summarize_aggregated_random_predictions(ids, data_dir=None, data='on_off',
                                    write_examples=write_examples,
                                    overwrite=overwrite)
 
-    #yhat_actuals = [partial_rand_predict(sid=sid) for sid in ids]
-    #logging.debug('len of yhat_actuals: %s', len(yhat_actuals))
-    #yhat_actuals_with_exs = [yhats_sid for yhats_sid in yhat_actuals
-    #                         if yhats_sid is not None]
     yhat_actuals = (partial_rand_predict(sid=sid) for sid in ids)
     yhat_actuals_with_exs = (yhats_sid for yhats_sid in yhat_actuals
                              if yhats_sid is not None)
     time_intervals = len_out + spin_time
 
-    #predict_arr = np.full((len(ids), time_intervals, num_rands), np.nan)
-    #actual_arr = np.full(predict_arr.shape, np.nan)
-
     predict_arr = np.full((num_rands, time_intervals, len(ids)), np.nan)
     actual_arr = np.full(predict_arr.shape, np.nan)
-
-    # logging.debug('len of yhat_actuals_with_exs %s', len(yhat_actuals_with_exs))
-
-    # for n in range(num_rands):
-    #     for r, pred_actual in enumerate(yhat_actuals_with_exs):
-    #         yhats, actuals = pred_actual
-    #         dev_exs = yhats.shape[0]
-    #         rand_ex = random.randint(0, dev_exs - 1)
-    #         # try:
-    #         #     yhats, actuals = next(pred)
-    #         # except StopIteration:
-    #         #     continue
-    #         predict_arr[r, :, n] = yhats[rand_ex, :]
-    #         actual_arr[r, :, n] = actuals[rand_ex, :]
 
     for dev, pred_actual in enumerate(yhat_actuals_with_exs):
         yhats, actuals = pred_actual
         predict_arr[:, :, dev] = yhats
         actual_arr[:, :, dev]= actuals
-
-        # yhats, actuals = pred_actual
-        # dev_exs = yhats.shape[0]
-        #
-        # for n in range(num_rands):
-        #     rand_ex = random.randint(0, dev_exs - 1)
-        #     predict_arr[r, :, n] = yhats[rand_ex, :]
-        #     actual_arr[r, :, n] = actuals[rand_ex, :]
 
     poimeans = np.full((time_intervals, num_rands), np.nan)
     assert np.all(np.isnan(poimeans))
@@ -1671,79 +1327,6 @@ def summarize_previous_training(ids, model_dir, weights_suffix, ext, len_in,
     return results
 
 
-# This assumes the arguments are lists built up from individual
-# random predictions
-# def summarize_random_predictions(rand_predicts, actuals):
-#     rand_preds = np.stack(tuple(rand_predicts))
-#     # rand_preds = rand_pred_arr[:, :, :, :]
-#     rand_actuals = np.stack(tuple(actuals))
-#     # rand_actuals = rand_actual_arr[:, :, :]
-#
-#     print('shape of rand_preds', rand_preds.shape)
-#     # print('shape of rand_actuals', rand_actuals.shape)
-#
-#     # assert 1 == 0
-#
-#     #num_rands = rand_preds.shape[1]
-#
-#     #time_intervals = rand_preds.shape[2]
-#     time_intervals = rand_preds.shape[-1]
-#     #for rand in num_rands:
-#     poimeans = np.empty(time_intervals, dtype=int)
-#     actual_totals = np.empty(time_intervals, dtype=int)
-#     quantiles_min = np.empty(time_intervals)
-#     quantiles_max = np.empty(time_intervals)
-#     for i in range(time_intervals):
-#         probs = rand_preds[:, :, i]
-#         print('probs ', probs)
-#         print('probs shape ', probs.shape)
-#         # assert 1 == 0
-#         # probs = rand_preds[:, :, i, :]
-#         # poicdf = rpoibin(rand_preds[:, :, i, :])
-#         range_arr = np.arange(len(probs) + 1)
-#         print('range_arr shape', range_arr.shape)
-#         kk = numpy2ri.py2ri(range_arr)
-#         pp = numpy2ri.py2ri(probs)
-#         print('pp shape ', pp.shape)
-#         # rep = robjects.r['rep']
-#         pmf = poibin.dpoibin(kk=kk, pp=pp)
-#         poiweightedsum = np.multiply(np.array(pmf), range_arr)
-#         poimeans[i] = round(np.sum(poiweightedsum))
-#
-#         #actual_status = rand_actuals[:, i, :]
-#         actual_status = rand_actuals[:, :, i]
-#         actual_totals[i] = np.sum(actual_status)
-#
-#         qqnp = np.array([0.05, 0.95])
-#         qqr = numpy2ri.py2ri(qqnp)
-#         quants = poibin.qpoibin(qqr, pp)
-#         quantiles_min[i] = quants[0]
-#         quantiles_max[i] = quants[1]
-#
-#     #x = np.array(range(len(probs)))
-#     x = np.arange(len(probs))
-#     return x, poimeans, actual_totals, quantiles_min, quantiles_max
-#
-#
-# def install_single_rpy2_package(package, rmirror=57):
-#     import rpy2.robjects.packages as rpackages
-#     from rpy2.robjects.vectors import StrVector
-#     utils = rpackages.importr('utils')
-#     utils.chooseCRANmirror(ind=rmirror)
-#     packnames = (package,)
-#     names_to_install = [x for x in packnames if not rpackages.isinstalled(x)]
-#     if len(names_to_install) > 0:
-#         utils.install_packages(StrVector(names_to_install))
-
-
-# def rpoibin(probs):
-#     kk = numpy2ri.py2ri(range(len(probs)))
-#     pp = numpy2ri.py2ri(probs)
-#     # rep = robjects.r['rep']
-#     cdf = poibin.ppoibin(kk=kk, pp=pp)
-#     return cdf
-
-
 def plot_preds_actuals(len_out, means, quants_min, quants_max, actual_totals):
     ax = figure().gca()
     ax.set_xlabel('Minutes')
@@ -1757,133 +1340,6 @@ def plot_preds_actuals(len_out, means, quants_min, quants_max, actual_totals):
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.legend()
     show()
-
-    # plt.xlabel('Minutes')
-    # plt.ylabel('ACs ON')
-    #
-    # plt.plot(np.arange(len(means)), means, label='predicted')
-    # plt.fill_between(range(len(means)), quants_min, quants_max,
-    #                  color='gray', alpha=0.4)
-    # plt.plot(np.arange(len(means)), actual_totals, label='actual')
-    #
-    # plt.legend()
-    # plt.show()
-
-
-# def plot_preds_only(len_out, means, quants_min, quants_max, actual_totals):
-#     plt.plot(np.arange(len(means)), means)
-#     plt.fill_between(range(len(means)), quants_min, quants_max,
-#                      color='gray', alpha=0.2)
-#     #plt.plot(np.arange(len(means)), actual_totals)
-#     plt.show()
-
-
-# def ids_trained_prev_jobs(headers, num_jobs=5):
-#     if num_jobs == 0:
-#         return dict([])
-#
-#     last_jobs_run = last_jobs(headers, num_jobs=num_jobs)
-#     print('last_jobs_run: ', last_jobs_run)
-#     if last_jobs_run.empty:
-#         return dict([])
-#     else:
-#         completed_ids = []
-#         job_ids = last_jobs_run['job_id'].values
-#         print('job_ids: ', job_ids)
-#         for job in job_ids:
-#             completed_ids.extend(last_ids_trained(job, headers))
-#         completed_devs_jobs = dict(completed_ids)
-#         #completed_devs = list(completed_devs_jobs.keys())
-#         #print('completed devs: {}'.format(completed_devs))
-#         return completed_devs_jobs
-
-
-# def np_dt_in_zone(x, zone='US/central'):
-#     return np.datetime64(maya.parse(x).datetime(to_timezone=zone, naive=True))
-
-
-# def last_jobs(headers, num_jobs=None, exit_codes='0,137,255',
-#               project='tlproject', zone='US/Central'):
-#     jobslist = _list_jobs(headers, project)
-#     print('jobslist: ', jobslist)
-#     if not jobslist or num_jobs == 0:
-#         return []
-#     else:
-#         jobs_running = [j['id'] for j in jobslist if j['state'] == 'running']
-#     if jobs_running:
-#         job_df = pd.DataFrame()
-#     else:
-#         # Code 137: container was killed
-#         if exit_codes is not None:
-#             exits = [int(c) for c in exit_codes.split(',')]
-#             finished_jobs = [j['id'] for j in jobslist
-#                              if j['dtTeardownFinished'] is not None and
-#                              j['exitCode'] in exits]
-#         else:
-#             finished_jobs = [j['id'] for j in jobslist
-#                              if j['dtTeardownFinished'] is not None]
-#
-#         teardown_times = [np_dt_in_zone(j['dtTeardownFinished'], zone=zone)
-#                           for j in jobslist if j['id'] in finished_jobs]
-#
-#         exit_codes = [int(j['exitCode']) for j in jobslist if j['id']
-#                       in finished_jobs]
-#
-#         job_meta = {'teardown_times': teardown_times,
-#                     'exit_codes': exit_codes,
-#                     'job_id': finished_jobs}
-#         job_df = pd.DataFrame.from_dict(job_meta)
-#         job_df.sort_values('teardown_times', ascending=False, inplace=True)
-#         print('job_df: ', job_df)
-#     if num_jobs is not None:
-#         jobs = pd.DataFrame(job_df.iloc[:num_jobs])
-#         assert len(jobs) == num_jobs
-#         return jobs
-#     else:
-#         return job_df
-
-
-# def _list_jobs(headers, project):
-#     jobs_list = '/'.join(['jobs', 'getJobs'])
-#     payload = {'project': project}
-#     listjobs_call = '/'.join([API_DOMAIN, jobs_list])
-#
-#     r = requests.get(listjobs_call, params=payload, headers=headers)
-#     response = r.json()
-#     if response:
-#         return response
-#     else:
-#         return []
-
-
-# def last_ids_trained(jobid, headers, train_func='profile_training_for_id',
-#                      log_desc='training time dict for id'):
-#     payload = {'jobId': jobid}
-#     log_call = '/'.join([LOG_DOMAIN, 'jobs', 'logs'])
-#     r = requests.get(log_call, params=payload, headers=headers)
-#     delayed_attempts = 0
-#     while r.status_code == 401:
-#         if delayed_attempts == 4:
-#             print('Attempt 4: status code of last_ids_trained: ', r.status_code)
-#             print('type of status code:', type(r.status_code))
-#             print('r.text:', r.text)
-#             raise Exception('Made {} attempts'.format(delayed_attempts))
-#         else:
-#             sleep(30)
-#             r = requests.get(log_call, params=payload, headers=headers)
-#             delayed_attempts += 1
-#
-#     log_content = r.json()
-#
-#     end_str = ' '.join([train_func + '()', log_desc])  # 'LSTM_model() end lstm'
-#
-#     dev_ids_jobs = []
-#     for logged in log_content:
-#         if end_str in logged['message']:
-#             preamble, train_profile = logged['message'].split(':{')
-#             dev_id = preamble.split()[-1]
-#             dev_ids_jobs.append((dev_id, jobid))
-#     return dev_ids_jobs
 
 
 class AttentionDecoder(Recurrent):
@@ -2318,33 +1774,8 @@ def nn_main():
     print('ids: {}'.format(opt.ids))
     print('type of ids: {}'.format(type(opt.ids)))
 
-    # options = vars(opt)
-    # pprint.pprint(options)
-
-    # from quilt.tools.util import BASE_DIR
-    # print(BASE_DIR)
-
-    # train_suffix = '_'.join([str(opt.epochs),'epochs',
-    #                         str(opt.patience), 'patience', opt.weightssuffix])
-    # return options
-
-    # data, dev_keys, _ = get_data_set(opt.datapkg)
-
-    # for dk in dev_keys:
-    #     if dk == 'metadata':
-    #         print('yes, metadata key there')
-    #         assert len(data[dk]._group_keys()) == 74
-    #         break
-
-    # return train_suffix
-
     max_prev_jobs = 1
 
-    #num_ids_to_train = remaining_to_train(headers, opt.datapkg)
-    #print('remaining', num_ids_to_train)
-    # return num_ids_to_train
-
-    #completed = ids_trained_prev_jobs(headers, num_jobs=5)
     completed = None
 
     #list_of tuples of devs, job ids
@@ -2383,157 +1814,7 @@ def nn_main():
 
     input_metas = results[1]
 
-    #log = os.path.join(md, 'caar.log')
-    # log = './caar.log'
-
-    #profiled = profile_ex_creation(log, input_metas, 'begin examples',
-    #                               'end examples', val_split=val_split)
-    #profiled_persist = os.path.join(md, 'profile_creation.csv')
-    #profiled.to_csv(profiled_persist)
-
-
-
-    #profile_fit = profile_training_local(TRAIN_LOG, input_metas, 'begin lstm fit',
-    #                                     'end lstm fit', val_split=val_split)
-    #profile_fit_persist = os.path.join(md, 'profile_fit.csv')
-    #profile_fit.to_csv(profile_fit_persist)
-    #print('profiled')
-    #print(profiled)
-    #print('profile_fit')
-    #print(profile_fit)
-
-    #logger.info('begin train_summary')
-    #logger.info(profile_fit)
-    #logger.info('end train_summary')
-
-    # results = {}
-
-    # res = summarize_aggregated_random_predictions(ids, data_dir=dd,
-    #                                               data='on_off', len_in=len_in,
-    #                                               len_out=len_out,
-    #                                               suffix=suffix,
-    #                                               weights_suffix=weights_suffix,
-    #                                               model_dir=md,
-    #                                               spin_time=spin_time,
-    #                                               references='ends',
-    #                                               hour=17, num_rands=num_rands,
-    #                                               write_examples=write,
-    #                                               overwrite=overwrite)
-    #
-    # time_intervals = len_out + spin_time
-    # poimeans, actual_totals, quants_min, quants_max = res
-    #
-    # summ = summarize_aggregated_errors(poimeans, actual_totals, spin_time,
-    #                                    num_rands)
-    #
-    # mean_error, mean_abs_error, relative_error, mean_actual = summ
-    #
-    # #
-    # for n in range(num_rands):
-    #     # logging.debug('actuals %s', actual_totals[:, n])
-    #     # logging.debug('poimeans %s', poimeans[:, n])
-    #     poimeans_vals = np.isfinite(poimeans[:, n])
-    #     assert all(poimeans[poimeans_vals, n] >= 0)
-    #     # logging.debug('quants_min[:, n] %s', quants_min[:, n])
-    #     assert all(quants_min[poimeans_vals, n] >= 0)
-    #     assert all(quants_max[poimeans_vals, n] >= 0)
-    #     assert all(poimeans[poimeans_vals, n] <= len(ids))
-    #     assert all(quants_max[poimeans_vals, n] <= len(ids))
-    #
-    #     plot_preds_actuals(poimeans[:, n].size, poimeans[:, n],
-    #                       quants_min[:, n], quants_max[:, n],
-    #                       actual_totals[:, n])
-    #
-    #     plot_preds_only(poimeans[:, n].size, poimeans[:, n],
-    #                        quants_min[:, n], quants_max[:, n],
-    #                        actual_totals[:, n])
-    #
-    # devs_avail = (np.isfinite(poimeans[t, :]) for t in range(time_intervals))
-
-    # residuals = []
-    # biases = []
-    # for t, da in enumerate(devs_avail):
-    #     if any(da):
-    #         assert np.sum(da) <= len(ids)
-    #         # logging.debug('t %s', t)
-    #         # logging.debug('poimeans[t, da] %s', poimeans[t, da])
-    #         # logging.debug('actual_totals[t, da] %s', actual_totals[t, da])
-    #         # logging.debug('np sum %s', np.sum(poimeans[t, da] - actual_totals[t, da]))
-    #         residuals.append(np.sum(poimeans[t, da] - actual_totals[t, da]))
-    #         biases.append(residuals[-1]*1.0/sum(da))
-    #         # logging.debug('biases %s', biases)
-    #     else:
-    #         residuals.append(None)
-    #         biases.append(None)
-    # logging.info('residuals %s', residuals)
-    # logging.info('biases %s', biases)
-
-    # out = summarize_examples_and_training(ids, dd, suffix, md, weights_suffix,
-    #                                       len_in, len_out, val_split,
-    #                                       'num_train', 'val_loss', opt.epochs,
-    #                                       PATIENCE, '.npz')
-
-    #ex_metas, train_result, ex_train_df = out
-
-    # rand_predicts = []
-    # actuals = []
-    # for sid in ids:
-    #     output = train_for_device(sid, data_dir=dd, data='on_off',
-    #                               suffix=suffix, len_in=20, len_out=20,
-    #                               write_examples=write_examples,
-    #                               overwrite=overwrite, predict=predict)
-    #
-    #     if not predict:
-    #         continue
-
-        # (model, metrics, val, hist1, accs, hist2, val_accs, hist3,
-        #  epoch_accs) = output
-        # accs_rnd = [round(acc * 100, 2) for acc in accs]
-        # val_accs_rnd = [round(vacc * 100, 2) for vacc in val_accs]
-        # epoch_accs_rnd = [round(eacc * 100, 2) for eacc in epoch_accs]
-        # val_round = round(val[1] * 100, 2)
-        # weights_file = '_'.join(['model', 'weights', suffix, 'id',
-        #                          '{:03d}'.format(sid) + '.h5'])
-        # weights_path = os.path.join(md, weights_file)
-        # model.save_weights(weights_path)
-        # results[sid] = dict([(metrics[1], val_round),
-        #                      (hist1, accs_rnd),
-        #                      (hist2, val_accs_rnd),
-        #                      (hist3, epoch_accs_rnd)])
-
-        # yhats, rand_actuals = predict_random_examples(sid,
-        #                                               data_dir=dd,
-        #                                               data='on_off',
-        #                                               len_in=20,
-        #                                               len_out=20, suffix=suffix,
-        #                                               weights_suffix=weights_suffix,
-        #                                               model_dir=md, hour=17)
-        #
-        # if yhats is not None:
-        #     rand_predicts.append(yhats)
-        #     actuals.append(rand_actuals)
-    #     break
-    #
-    # preds = summarize_random_predictions(rand_predicts, actuals)
-    #
-    # x, poimeans, actual_totals, quants_min, quants_max = preds
-
-    #plot_preds_actuals(20, poimeans, quants_min, quants_max, actual_totals)
-    #
-    # for summarize_aggregated_random_predictions
-    # if predict:
-    #     return res, mean_error, mean_abs_error, relative_error, mean_actual
-    # else:
-    #     return 1
-    #return ex_metas, train_result, ex_train_df, mean_error, mean_abs_error, relative_error, mean_actual, poimeans, quants_min, quants_max, actual_totals
-    #return val_losses
     return results
-    #return rand_predicts, actuals
-    #return poimeans
-    # losses = summarize_previous_training(ids, md, weights_suffix, '.npz',
-    #                                      len_in, len_out, epochs, patience)
-    # plot_multiple_dev_losses(losses)
-    # return losses
 
 
 if __name__ == '__main__':

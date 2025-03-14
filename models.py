@@ -277,12 +277,6 @@ def main():
                                    opts.activation)
     ma = ModelArchitecture(arch_dict)
 
-    #ma.write_architecture_to_json_file('lstm.json', model_dir=None)
-
-    #loaded_ma = ModelArchitecture(load_architecture_from_json_file('lstm.json'))
-
-    #assert ma == loaded_ma
-
     ma.compile_model(model=ma.model)
 
     return ma
