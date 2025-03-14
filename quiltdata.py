@@ -43,10 +43,6 @@ def ids_remaining_to_train(train_ids, dev_keys, completed):
     mod_ids = add_prefix_for_quilt(to_complete)
     return to_complete, mod_ids
 
-
-
-
-
 def add_prefix_for_quilt(ids):
     return ['n' + id for id in ids]
 
