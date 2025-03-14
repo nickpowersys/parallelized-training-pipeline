@@ -489,9 +489,6 @@ def train(ids=None, data=None, val_split=None, patience=None,
         epoch_metrics = epochs_val_loss_from_metrics(metrics)
         stopped, max_epochs, training_loss, val_loss = epoch_metrics
 
-        # profile_training_for_id(dev, input_metas[dev], begin, end,
-        #                         stopped, max_epochs, training_loss,
-        #                         val_loss, val_split)
         profile_training_for_id(dev_id=dev, input_meta=input_metas[dev],
                                 begin=begin, end=end, stopped_epoch=stopped,
                                 max_epochs=max_epochs,
