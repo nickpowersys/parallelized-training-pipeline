@@ -1,4 +1,4 @@
-To accelerate training across multiple TensorFlow classification models and support faster hyperparameter tuning, threads are used to launch Docker containers on public cloud providers.
+To accelerate training across multiple TensorFlow Sequential classification models and support faster hyperparameter tuning, threads are used to launch Docker containers on public cloud providers.
 
 Paperspace provides a simple API for launching containers through its Gradient service.
 
